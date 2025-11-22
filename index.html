@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مسابقة أنواع خبر كان وإن</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f7f7f7;
+            transition: background 0.5s ease;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .sub-info {
+            text-align: center;
+            margin: 0;
+        }
+
+        #question-box {
+            margin: 20px auto;
+            max-width: 900px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        #controls {
+            max-width: 900px;
+            margin: 15px auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #controls .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #btn-reset {
+            background-color: #f39c12;
+            color: #fff;
+        }
+
+        #btn-check {
+            background-color: #27ae60;
+            color: #fff;
+        }
+
+        #btn-start-timer {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        #btn-advanced {
+            background-color: #9b59b6;
+            color: #fff;
+        }
+
+        #timer-box {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #timer {
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #ffffff;
+            border: 1px solid #ccc;
+        }
+
+        /* الحاوية العامة للجدول وعمود الجمل */
+        #main-area {
+            max-width: 1100px;
+            margin: 20px auto;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        #answer-pool {
+            flex: 0 0 32%;
+            min-height: 300px;
+            padding: 10px;
+            border: 2px dashed #777;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #ffffff;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .answer {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #666;
+            background: #e8f0ff;
+            cursor: grab;
+            user-select: none;
+            font-size: 14px;
+            line-height: 1.5;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s;
+        }
+
+        .answer:active {
+            transform: scale(1.03);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        table {
+            flex: 1;
+            border-collapse: collapse;
+            background: #ffffff;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        th {
+            color: #333;
+            background-color: #f0f3f4;
+        }
+
+        .dropzone {
+            min-height: 70px;
+            transition: background-color 0.15s ease, outline 0.15s ease;
+        }
+
+        .dropzone.over {
+            outline: 2px dashed #4a4aff;
+            background-color: #eef0ff !important;
+        }
+
+        #result {
+            max-width: 900px;
+            margin: 10px auto;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .correct {
+            background: linear-gradient(135deg, #d4efdf, #a9dfbf) !important;
+            border-color: #27ae60 !important;
+        }
+
+        .incorrect {
+            background: linear-gradient(135deg, #f9d6d5, #f5b7b1) !important;
+            border-color: #c0392b !important;
+        }
+
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+
+        #celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 999;
+        }
+
+        .star {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            opacity: 0.95;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%,
+                               79% 91%, 50% 70%, 21% 91%, 32% 57%,
+                               2% 35%, 39% 35%);
+            animation: fall 2.2s linear forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10vh) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .win-flash {
+            background: radial-gradient(circle at top, #fff9c4, #f8bbd0, #bbdefb);
+        }
+
+        .win-bounce {
+            animation: winBounce 1s ease-in-out 0s 2;
+        }
+
+        @keyframes winBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
+
+        .reset-flash {
+            animation: resetFlash 0.7s ease;
+        }
+
+        @keyframes resetFlash {
+            0% { background-color: #fff3cd; }
+            100% { background-color: #f7f7f7; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>مسابقة أنواع خبر كان وإن</h1>
+    <p class="sub-info">المدرسة: الديسة الثانوية للبنات</p>
+    <p class="sub-info">إعداد المعلمة: فاطمة علي الزوايدة</p>
+
+    <div id="question-box">
+        <h2 id="question-text">
+            اسحب الجملة المناسبة من الأسفل وضعها في خانة <strong>نوع الخبر</strong> الصحيح:
+            (خبر مفرد لفظًا، خبر جملة فعلية، خبر جملة اسمية، خبر شبه جملة).
+        </h2>
+    </div>
+
+    <div id="controls">
+        <div class="buttons">
+            <button id="btn-reset">إعادة المحاولة</button>
+            <button id="btn-check">إنهاء</button>
+            <button id="btn-start-timer">ابدأ</button>
+            <button id="btn-advanced">مستوى متقدم</button>
+        </div>
+        <div id="timer-box">
+            المؤقت:
+            <span id="timer">00:00</span>
+        </div>
+    </div>
+
+    <h3 id="level-hint" style="text-align:center;">اسحبي الجملة وضعيها في خانة نوع الخبر الصحيح</h3>
+
+    <!-- الحاوية الجانبية: عمود الجمل + الجدول -->
+    <div id="main-area">
+        <!-- الجمل القابلة للسحب -->
+        <div id="answer-pool" class="dropzone">
+            <!-- الجمل تُولَّد من الجافاسكربت -->
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>نوع التصنيف</th>
+                    <th>الجمل المناسبة</th>
+                </tr>
+            </thead>
+            <tbody id="categories-body">
+                <!-- يُولَّد من الجافاسكربت -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="result"></div>
+
+    <!-- أصوات -->
+    <audio id="success-sound">
+        <source src="clap.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="fail-sound">
+        <source src="fail.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- طبقة الاحتفال -->
+    <div id="celebration"></div>
+
+    <script>
+        // ===== تعريف المستويين =====
+        // المستوى 1: أنواع الخبر
+        const categoriesLevel1 = [
+            { id: 'zone-single',  label: 'خبر مفرد لفظًا',                    key: 'single'   },
+            { id: 'zone-verb',    label: 'خبر جملة فعلية',                    key: 'verb'     },
+            { id: 'zone-nominal', label: 'خبر جملة اسمية',                    key: 'nominal'  },
+            { id: 'zone-semi',    label: 'خبر شبه جملة (جار ومجرور / ظرف)',  key: 'semi'     }
+        ];
+
+        // المستوى 2: أنواع اسم كان وإن
+        const categoriesLevel2 = [
+            { id: 'zone-name-attached',     label: 'ضمير متصل',    key: 'attached'      },
+            { id: 'zone-name-detached',     label: 'ضمير منفصل',   key: 'detached'      },
+            { id: 'zone-name-noun',         label: 'اسم ظاهر',     key: 'noun'          },
+            { id: 'zone-name-demonstrative',label: 'اسم إشارة',    key: 'demonstrative' },
+            { id: 'zone-name-relative',     label: 'اسم موصول',    key: 'relative'      }
+        ];
+
+        let currentLevel = 1; // 1 = خبر، 2 = نوع اسم الناسخ
+
+        // ===== بنك الجمل الأصلي (نوع الخبر فقط، اسم الناسخ = اسم ظاهر) =====
+        const baseQuestions = [
+            // كان وأخواتها – خبر مفرد لفظًا
+            { text: "كانَ الطالبُ مجتهدًا.",                type: "single" },
+            { text: "أصبحتِ الطالبتانِ متفوقتين.",          type: "single" },
+            { text: "صارَ اللاعبونَ مستعدين.",              type: "single" },
+            { text: "ظلَّ الفلاحُ نشيطًا.",                  type: "single" },
+            { text: "باتتِ السماءُ صافيةً.",                 type: "single" },
+            { text: "ليسَ الكذبُ محمودًا.",                  type: "single" },
+            { text: "كانتِ الشمسُ مشرقةً.",                  type: "single" },
+            { text: "أضحى العاملانِ متعبين.",               type: "single" },
+            { text: "أصبحَ الأطفالُ سعداءَ.",               type: "single" },
+            { text: "صارَ الطريقُ مزدحمًا.",                type: "single" },
+            { text: "ظلَّ الجنودُ ثابتين.",                  type: "single" },
+            { text: "ما زالَ الوقتُ مبكرًا.",                type: "single" },
+            { text: "ليسَ الغشُّ حلًّا.",                    type: "single" },
+            { text: "كانتِ الزهرتانِ ذابلتين.",              type: "single" },
+            { text: "أصبحَ المعلمونَ جاهزين.",              type: "single" },
+
+            // كان وأخواتها – خبر جملة فعلية
+            { text: "كانَ الطالبُ يدرسُ بجدٍّ.",            type: "verb" },
+            { text: "أصبحتِ السماءُ تمطرُ.",                type: "verb" },
+            { text: "صارَ الأطفالُ يلعبونَ.",               type: "verb" },
+            { text: "ظلَّ الرجلُ يعملُ بصدقٍ.",             type: "verb" },
+            { text: "باتتِ القطةُ تبحثُ عن طعامٍ.",         type: "verb" },
+            { text: "أضحى الطفلُ يضحكُ كثيرًا.",            type: "verb" },
+            { text: "ما برحَ الرجلُ يردِّدُ الحقيقةَ.",     type: "verb" },
+            { text: "ما فتئَ الطائرُ يغني.",                type: "verb" },
+            { text: "ما زالتِ المعلمةُ تشرحُ الدرسَ.",      type: "verb" },
+            { text: "أصبحَ الطالبانِ يقرآنِ الكتابَ.",      type: "verb" },
+
+            // كان وأخواتها – خبر جملة اسمية
+            { text: "كانَ الطفلُ أخلاقُه حسنةً.",           type: "nominal" },
+            { text: "صارَ الطقسُ سماؤه صافيةً.",            type: "nominal" },
+            { text: "أصبحتِ القريةُ طرقُها آمنةً.",         type: "nominal" },
+            { text: "باتتِ الحديقةُ أزهارُها متفتحةً.",     type: "nominal" },
+            { text: "ظلَّ البحرُ أمواجُه عاليةً.",          type: "nominal" },
+            { text: "ليسَ المنزلُ أبوابُه مفتوحةً.",        type: "nominal" },
+            { text: "ما زالَ الجبلُ قمّتُه مكسوّةً بالثلجِ.",type: "nominal" },
+            { text: "كانتِ الشجرةُ أوراقُها خضراءَ.",       type: "nominal" },
+            { text: "أضحى الكتابُ معلوماتُه كثيرةً.",       type: "nominal" },
+            { text: "أصبحَ الهاتفُ بطاريتُه ضعيفةً.",       type: "nominal" },
+
+            // كان وأخواتها – خبر شبه جملة
+            { text: "كانَ الطفلُ في البيتِ.",               type: "semi" },
+            { text: "أصبحتِ الفتاةُ على الطريقِ.",          type: "semi" },
+            { text: "صارَ المسافرونَ في القطارِ.",          type: "semi" },
+            { text: "ظلَّ السائقُ على المقعدِ.",            type: "semi" },
+            { text: "باتَ القمرُ في السماءِ.",              type: "semi" },
+            { text: "ما زالتِ السيارةُ في المرآبِ.",        type: "semi" },
+            { text: "ليسَ الكتابُ على المكتبِ.",            type: "semi" },
+            { text: "كانتِ الطالبتانِ في الصفِّ.",          type: "semi" },
+            { text: "أصبحَ المعلمُ فوقَ المنصّةِ.",         type: "semi" },
+            { text: "كانَ الهاتفُ تحتَ الوسادةِ.",          type: "semi" },
+            { text: "ظلَّ المتسابقونَ أمامَ البوابةِ.",     type: "semi" },
+            { text: "باتتِ السيارةُ قربَ المنزلِ.",         type: "semi" },
+            { text: "صارَ الأطفالُ حولَ المائدةِ.",         type: "semi" },
+            { text: "ما زالتِ الطائرةُ فوقَ السحابِ.",      type: "semi" },
+            { text: "أصبحتِ القطةُ بينَ الأشجارِ.",         type: "semi" },
+
+            // إن وأخواتها – خبر مفرد لفظًا
+            { text: "إنَّ الطالبَ مجتهدٌ.",                  type: "single" },
+            { text: "أنَّ الفتاتينِ متفوقتانِ.",             type: "single" },
+            { text: "إنَّ اللاعبينَ جاهزونَ.",               type: "single" },
+            { text: "ليتَ الطفلَ سعيدٌ.",                    type: "single" },
+            { text: "لعلَّ الجوَّ جميلٌ.",                   type: "single" },
+            { text: "لكنَّ الغشَّ مذمومٌ.",                  type: "single" },
+            { text: "إنَّ الشمسَ مشرقةٌ.",                   type: "single" },
+            { text: "كأنَّ الرجلَ قويٌّ.",                   type: "single" },
+            { text: "ليتَ الزهرتينِ جميلتانِ.",              type: "single" },
+            { text: "لعلَّ الجنودَ ثابتونَ.",                type: "single" },
+            { text: "إنَّ الوطنَ عزيزٌ.",                    type: "single" },
+            { text: "كأنَّ الجبلَ شامخٌ.",                   type: "single" },
+            { text: "لكنَّ الصدقَ منجاةٌ.",                  type: "single" },
+            { text: "إنَّ الكتبَ مفيدةٌ.",                   type: "single" },
+            { text: "ليتَ الأطفالَ سعداءُ.",                 type: "single" },
+
+            // إن وأخواتها – خبر جملة فعلية
+            { text: "إنَّ الطالبَ يكتبُ الدرسَ.",            type: "verb" },
+            { text: "أنَّ الفتاةَ تقرأُ الكتابَ.",           type: "verb" },
+            { text: "لعلَّ السماءَ تمطرُ قريبًا.",           type: "verb" },
+            { text: "كأنَّ الطفلَ يبكي.",                    type: "verb" },
+            { text: "ليتَ المرأتينِ تعملانِ بجدٍّ.",         type: "verb" },
+            { text: "إنَّ اللاعبينَ يركضونَ بسرعةٍ.",        type: "verb" },
+            { text: "لكنَّ الوقتَ يمرُّ سريعًا.",            type: "verb" },
+            { text: "أنَّ القائدَ يقودُ المعركةَ.",          type: "verb" },
+            { text: "إنَّ الأستاذَ يشرحُ الدرسَ.",           type: "verb" },
+            { text: "كأنَّ العصفورَ يغرِّدُ.",               type: "verb" },
+
+            // إن وأخواتها – خبر جملة اسمية
+            { text: "إنَّ القمرَ ضوؤُه جميلٌ.",              type: "nominal" },
+            { text: "كأنَّ البحرَ أمواجُه عاليةٌ.",          type: "nominal" },
+            { text: "ليتَ الربيعَ أزهارُه كثيرةٌ.",          type: "nominal" },
+            { text: "أنَّ الطفلَ لعبتُه مكسورةٌ.",           type: "nominal" },
+            { text: "إنَّ الطالباتِ جهودُهُنَّ مشكورةٌ.",    type: "nominal" },
+            { text: "لكنَّ الرجلَ نيتُه صافيةٌ.",            type: "nominal" },
+            { text: "لعلَّ الوطنَ أرضُه طيبةٌ.",             type: "nominal" },
+            { text: "أنَّ الطريقَ نهايتُه قريبةٌ.",          type: "nominal" },
+            { text: "إنَّ المساءَ سماؤه ورديّةٌ.",           type: "nominal" },
+            { text: "كأنَّ المطرَ قطراتُه لامعةٌ.",          type: "nominal" },
+
+            // إن وأخواتها – خبر شبه جملة
+            { text: "إنَّ الطالبَ في الصفِّ.",               type: "semi" },
+            { text: "ليتَ الطفلَ على السريرِ.",              type: "semi" },
+            { text: "لعلَّ المعلمينَ في المدرسةِ.",          type: "semi" },
+            { text: "كأنَّ الرجلَ في السوقِ.",              type: "semi" },
+            { text: "لكنَّ المالَ في الخزنةِ.",              type: "semi" },
+            { text: "أنَّ الأوراقَ على الطاولةِ.",           type: "semi" },
+            { text: "إنَّ الهاتفَ في العلبةِ.",              type: "semi" },
+            { text: "إنَّ السيارةَ عندَ البابِ.",            type: "semi" },
+            { text: "إنَّ الجنودَ أمامَ الثكنةِ.",           type: "semi" },
+            { text: "لعلَّ الطفلَ تحتَ الطاولةِ.",           type: "semi" },
+            { text: "كأنَّ القطةَ فوقَ السطحِ.",             type: "semi" },
+            { text: "ليتَ المكتبَ قربَ النافذةِ.",           type: "semi" },
+            { text: "إنَّ المعلماتِ خلفَ السبورةِ.",         type: "semi" },
+            { text: "لكنَّ السيارةَ أمامَ البيتِ.",          type: "semi" },
+            { text: "كأنَّ الطائرَ فوقَ الشجرةِ.",           type: "semi" }
+        ];
+
+        // جمل خاصة بأنواع اسم كان/إن الأخرى
+        const extraQuestions = [
+            // ضمير متصل
+            { text: "كنتُ مجتهدًا.",               type: "single", nameType: "attached" },
+            { text: "كنّا سعداءَ.",                type: "single", nameType: "attached" },
+            { text: "إنَّهُ صادقٌ.",               type: "single", nameType: "attached" },
+            { text: "إنَّها مجتهدةٌ.",             type: "single", nameType: "attached" },
+            { text: "إنَّهم متعاونونَ.",           type: "single", nameType: "attached" },
+
+            // ضمير منفصل
+            { text: "كانَ هوَ الفائزَ.",           type: "single", nameType: "detached" },
+            { text: "كانتْ هيَ المجتهدةَ.",        type: "single", nameType: "detached" },
+            { text: "إنَّ أنتَ مجتهدٌ.",           type: "single", nameType: "detached" },
+
+            // اسم إشارة
+            { text: "كانَ هذا الطالبُ مجتهدًا.",   type: "single", nameType: "demonstrative" },
+            { text: "إنَّ هذهِ الفتاةَ متفوقةٌ.",  type: "single", nameType: "demonstrative" },
+            { text: "إنَّ هؤلاءِ الطلابَ مجتهدونَ.", type: "single", nameType: "demonstrative" },
+
+            // اسم موصول
+            { text: "كانَ الذي نجحَ سعيدًا.",      type: "single", nameType: "relative" },
+            { text: "إنَّ الذينَ درسوا ناجحونَ.",  type: "single", nameType: "relative" },
+            { text: "إنَّ التي تفوزُ مبدعةٌ.",      type: "single", nameType: "relative" }
+        ];
+
+        // نرفق نوع الاسم (noun) لكل الجمل الأصلية
+        const questionBank = [
+            ...baseQuestions.map(q => ({ ...q, nameType: "noun" })),
+            ...extraQuestions
+        ];
+
+        let draggedId = null;
+        let timerInterval = null;
+        let remainingSeconds = 0;
+        const DEFAULT_TIME = 60;
+        let timerStarted = false; // جديد: لمعرفة هل المؤقت يعمل أم لا
+        let successSound;
+        let failSound;
+        let currentQuestions = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnReset      = document.getElementById('btn-reset');
+            const btnCheck      = document.getElementById('btn-check');
+            const btnStartTimer = document.getElementById('btn-start-timer');
+            const btnAdvanced   = document.getElementById('btn-advanced');
+            const answerPool    = document.getElementById('answer-pool');
+
+            successSound = document.getElementById('success-sound');
+            failSound    = document.getElementById('fail-sound');
+
+            updateLevelTexts();
+            renderCategories();
+            loadNewRound();
+
+            btnReset.addEventListener('click', resetQuiz);
+            btnCheck.addEventListener('click', checkAnswers);
+
+            // زر ابدأ ما زال يعمل يدويًا إن أحبّت المعلمة
+            btnStartTimer.addEventListener('click', () => startTimer(DEFAULT_TIME));
+            btnAdvanced.addEventListener('click', toggleLevel);
+
+            updateTimerDisplay(0);
+            attachDropzoneEvents(answerPool);
+        });
+
+        function getActiveCategories() {
+            return currentLevel === 1 ? categoriesLevel1 : categoriesLevel2;
+        }
+
+        function updateLevelTexts() {
+            const q = document.getElementById('question-text');
+            const h = document.getElementById('level-hint');
+            const title = document.querySelector('h1');
+
+            if (currentLevel === 1) {
+                title.textContent = "مسابقة أنواع خبر كان وإن";
+                q.innerHTML = 'اسحب الجملة المناسبة من الأسفل وضعها في خانة <strong>نوع الخبر</strong> الصحيح: (خبر مفرد لفظًا، خبر جملة فعلية، خبر جملة اسمية، خبر شبه جملة).';
+                h.textContent = 'اسحبي الجملة وضعيها في خانة نوع الخبر الصحيح';
+            } else {
+                title.textContent = "مسابقة أنواع اسم كان وإن (مستوى متقدم)";
+                q.innerHTML = 'اسحب الجملة المناسبة من الأسفل وضعها في خانة نوع <strong>اسم كان أو إن</strong> الصحيح: (ضمير متصل، ضمير منفصل، اسم ظاهر، اسم إشارة، اسم موصول).';
+                h.textContent = 'اسحبي الجملة وضعيها في خانة نوع اسم كان أو إن الصحيح';
+            }
+        }
+
+        function toggleLevel() {
+            const btnAdvanced = document.getElementById('btn-advanced');
+            currentLevel = currentLevel === 1 ? 2 : 1;
+            btnAdvanced.textContent = currentLevel === 1 ? 'مستوى متقدم' : 'العودة للمستوى الأول';
+            updateLevelTexts();
+            resetQuiz(true);
+        }
+
+        function renderCategories() {
+            const body = document.getElementById('categories-body');
+            body.innerHTML = '';
+            const cats = getActiveCategories();
+
+            cats.forEach(cat => {
+                const tr = document.createElement('tr');
+
+                const tdLabel = document.createElement('td');
+                tdLabel.textContent = cat.label;
+
+                const tdDrop = document.createElement('td');
+                tdDrop.className = 'dropzone';
+                tdDrop.id = cat.id;
+                tdDrop.textContent = 'اسحب الجمل التي تنتمي لهذا النوع إلى هنا';
+
+                tr.appendChild(tdLabel);
+                tr.appendChild(tdDrop);
+                body.appendChild(tr);
+
+                attachDropzoneEvents(tdDrop);
+            });
+        }
+
+        function loadNewRound() {
+            if (currentLevel === 1) {
+                currentQuestions = getRandomSubset(questionBank, 8);
+            } else {
+                currentQuestions = getAdvancedSubset();
+            }
+            renderAnswers();
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = '';
+            resultDiv.classList.remove('win-bounce');
+        }
+
+        // مجموعة عشوائية عامة
+        function getRandomSubset(array, count) {
+            const copy = [...array];
+            const result = [];
+            while (result.length < count && copy.length > 0) {
+                const idx = Math.floor(Math.random() * copy.length);
+                result.push(copy.splice(idx, 1)[0]);
+            }
+            return result;
+        }
+
+        // مجموعة المستوى المتقدم: تشمل كل أنواع اسم الناسخ
+        function getAdvancedSubset() {
+            const nameTypes = ['attached', 'detached', 'noun', 'demonstrative', 'relative'];
+            const selected = [];
+            const usedIndexes = new Set();
+
+            // نضمن جملة واحدة على الأقل من كل نوع
+            nameTypes.forEach(nt => {
+                const options = questionBank
+                    .map((q, idx) => ({ q, idx }))
+                    .filter(o => o.q.nameType === nt && !usedIndexes.has(o.idx));
+                if (options.length > 0) {
+                    const choice = options[Math.floor(Math.random() * options.length)];
+                    selected.push(choice.q);
+                    usedIndexes.add(choice.idx);
+                }
+            });
+
+            // نكمّل حتى ٨ جمل بأي جمل أخرى
+            const remaining = questionBank
+                .map((q, idx) => ({ q, idx }))
+                .filter(o => !usedIndexes.has(o.idx));
+
+            while (selected.length < 8 && remaining.length > 0) {
+                const i = Math.floor(Math.random() * remaining.length);
+                selected.push(remaining[i].q);
+                remaining.splice(i, 1);
+            }
+
+            return selected;
+        }
+
+        function renderAnswers() {
+            const pool = document.getElementById('answer-pool');
+            pool.innerHTML = '';
+
+            currentQuestions.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'answer';
+                card.id = 'ans' + (index + 1);
+                card.textContent = item.text;
+                card.setAttribute('draggable', 'true');
+                card.dataset.type = item.type;
+                card.dataset.nameType = item.nameType;
+
+                card.addEventListener('dragstart', dragStart);
+                pool.appendChild(card);
+            });
+        }
+
+        function attachDropzoneEvents(zone) {
+            zone.addEventListener('dragover', dragOver);
+            zone.addEventListener('dragenter', dragEnter);
+            zone.addEventListener('dragleave', dragLeave);
+            zone.addEventListener('drop', drop);
+        }
+
+        function dragStart(e) {
+            if (this.classList.contains('disabled')) return;
+            draggedId = this.id;
+            e.dataTransfer.setData('text/plain', draggedId);
+
+            // بدء المؤقت تلقائيًا عند أول سحب
+            if (!timerStarted) {
+                startTimer(DEFAULT_TIME);
+            }
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function dragEnter(e) {
+            e.preventDefault();
+            this.classList.add('over');
+        }
+
+        function dragLeave() {
+            this.classList.remove('over');
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            this.classList.remove('over');
+
+            const id = e.dataTransfer.getData('text/plain') || draggedId;
+            const element = document.getElementById(id);
+            if (!element || element.classList.contains('disabled')) return;
+
+            if (this.textContent.trim().startsWith('اسحب')) {
+                this.textContent = '';
+            }
+
+            element.classList.remove('correct', 'incorrect');
+            this.appendChild(element);
+        }
+
+        function showCelebration() {
+            const container = document.getElementById('celebration');
+            container.innerHTML = '';
+            const starCount = 150;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const hue = Math.floor(Math.random() * 360);
+                star.style.backgroundColor = `hsl(${hue}, 90%, 60%)`;
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.animationDelay = (Math.random() * 0.7) + 's';
+                star.style.transform = `translateY(-10vh) scale(${0.7 + Math.random() * 0.8})`;
+                container.appendChild(star);
+            }
+
+            document.body.classList.add('win-flash');
+            setTimeout(() => {
+                container.innerHTML = '';
+                document.body.classList.remove('win-flash');
+            }, 2600);
+        }
+
+        function resetQuiz(fromLevelSwitch = false) {
+            const resultDiv = document.getElementById('result');
+
+            stopTimer();
+            updateTimerDisplay(0);
+
+            document.querySelectorAll('.answer').forEach(ans => ans.remove());
+
+            const celebration = document.getElementById('celebration');
+            celebration.innerHTML = '';
+            document.body.classList.remove('win-flash');
+
+            resultDiv.textContent = fromLevelSwitch
+                ? (currentLevel === 1 ? 'عدنا للمستوى الأول ✨' : 'أنت الآن في المستوى المتقدم ✨')
+                : 'محاولة جديدة ✨';
+            resultDiv.style.color = '#f39c12';
+            resultDiv.classList.remove('win-bounce');
+
+            document.body.classList.add('reset-flash');
+            setTimeout(() => {
+                document.body.classList.remove('reset-flash');
+            }, 700);
+
+            if (successSound) {
+                successSound.pause();
+                successSound.currentTime = 0;
+            }
+            if (failSound) {
+                failSound.pause();
+                failSound.currentTime = 0;
+            }
+
+            renderCategories();
+            loadNewRound();
+        }
+
+        function checkAnswers() {
+            const answers = document.querySelectorAll('.answer');
+            let correctCount = 0;
+            let total = answers.length;
+
+            // إيقاف المؤقت عند الضغط على "إنهاء"
+            stopTimer();
+
+            const cats = getActiveCategories();
+
+            answers.forEach(ans => {
+                ans.classList.remove('correct', 'incorrect');
+
+                let keyNeeded;
+                if (currentLevel === 1) {
+                    keyNeeded = ans.dataset.type;
+                } else {
+                    keyNeeded = ans.dataset.nameType;
+                }
+
+                const correctCat = cats.find(c => c.key === keyNeeded);
+                const correctZoneId = correctCat ? correctCat.id : '';
+                const parentZone = ans.parentElement.id;
+
+                if (parentZone === correctZoneId) {
+                    ans.classList.add('correct');
+                    correctCount++;
+                } else {
+                    ans.classList.add('incorrect');
+                }
+            });
+
+            const resultDiv = document.getElementById('result');
+
+            if (successSound) {
+                successSound.pause();
+                successSound.currentTime = 0;
+            }
+            if (failSound) {
+                failSound.pause();
+                failSound.currentTime = 0;
+            }
+
+            if (correctCount === total && total > 0) {
+                const levelMsg = currentLevel === 1 ? 'أنواع الخبر' : 'أنواع اسم كان وإن';
+                resultDiv.textContent =
+                    `👏 أحسنتِ! جميع الجمل في التصنيف الصحيح (${levelMsg}). علامتك: ${correctCount} من ${total}`;
+                resultDiv.style.color = '#27ae60';
+                resultDiv.classList.add('win-bounce');
+                if (successSound) {
+                    successSound.play().catch(() => {});
+                }
+                showCelebration();
+            } else {
+                resultDiv.textContent =
+                    `😔 هناك بعض الأخطاء. علامتك: ${correctCount} من ${total} — حاولي مرة أخرى، أنتِ قادرة على الأفضل!`;
+                resultDiv.style.color = '#c0392b';
+                resultDiv.classList.remove('win-bounce');
+                if (failSound) {
+                    failSound.play().catch(() => {});
+                }
+            }
+        }
+
+        function disableDragging() {
+            const answers = document.querySelectorAll('.answer');
+            answers.forEach(ans => {
+                ans.classList.add('disabled');
+                ans.setAttribute('draggable', 'false');
+            });
+        }
+
+        function startTimer(seconds) {
+            stopTimer();
+            remainingSeconds = seconds;
+            updateTimerDisplay(remainingSeconds);
+            timerStarted = true;
+
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    remainingSeconds = 0;
+                    updateTimerDisplay(remainingSeconds);
+                    stopTimer();
+                    disableDragging();
+                } else {
+                    updateTimerDisplay(remainingSeconds);
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            timerStarted = false;
+        }
+
+        function updateTimerDisplay(seconds) {
+            const timerSpan = document.getElementById('timer');
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            const m = String(mins).padStart(2, '0');
+            const s = String(secs).padStart(2, '0');
+            timerSpan.textContent = `${m}:${s}`;
+        }
+    </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
